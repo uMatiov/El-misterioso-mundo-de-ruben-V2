@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[12] = [
-  "Capítulo 12: Los de una Tierra Distante — Llegada a Porto Alegre",
   "El viaje comenzó temprano, a las seis de la mañana. Antes de abandonar Río de Janeiro, cada uno había comprobado que llevara consigo lo necesario: dinero, ropa para cambiarse, equipo médico, armas y cualquier objeto que pudiera resultar útil durante la misión. También habían guardado agua bendita para los rituales de Asher.",
   "No todos habían sido igual de previsores. Algunos llevaban más dinero que otros, y hubo quien reconoció que había olvidado preparar una lista de sus pertenencias. Al final, lo importante era que nadie se hubiera dejado algo indispensable.",
   "Con el equipaje acomodado, emprendieron el camino hacia el sur.",

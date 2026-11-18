@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[9] = [
-  "Capítulo 9: Los de una Tierra Distante — Desafía al equipo de la tríada / Autopsia",
   "La transmisión había terminado, pero sus consecuencias apenas comenzaban.",
   "El ultimátum había sido claro: si no entregaban a los miembros de la nobleza que exigían, seguirían atacando Brasil. Cada tres días habría nuevas víctimas, nuevas demostraciones de fuerza. La primera había sido brutal. Durante una exhibición japonesa, el fósforo blanco había convertido a los asistentes en parte de una advertencia imposible de ignorar.",
   "El grupo no podía quedarse esperando a que llegara el siguiente ataque. Tenían que averiguar qué había ocurrido con Raymundo y con la comisionada, quienes se encontraban en el lugar de la masacre. Por eso, Alexander, Clavel y Robin se dirigieron a la comisaría. Mob se quedó fuera, pendiente de lo que sucediera y de las comunicaciones con los demás.",

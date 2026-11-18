@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[6] = [
-  "Capítulo 6: El bajo mundo, papá, se me metió un búho a la casa y un enemigo cerca",
   "La noche anterior había terminado con una serie de asuntos pendientes.",
   "Clavel había acompañado a su tía hasta la casa de esta, pues no pensaba quedarse allí más tiempo. Después, Robin se había dirigido al hospital Oscar Asher. Allí lo esperaba el doctor Osler, sentado en la oscuridad, como si llevara un tiempo considerable aguardando su llegada. La imagen resultaba inquietante; Robin no podía evitar preguntarse cuánto tiempo había permanecido el médico en aquella habitación a oscuras ni cuánto más habría estado dispuesto a esperar.",
   "Osler le explicó que había administrado una fórmula especial que aceleraría su recuperación. También le ofreció comprar más dosis. El precio terminó siendo considerable: diez mil reales por dos botellas. Robin, consciente de que podía necesitarlas, acabó comprando tres pequeñas botellas. Había gastado una cantidad importante de dinero y, desde luego, tendría que cuidarlas como si fueran oro.",

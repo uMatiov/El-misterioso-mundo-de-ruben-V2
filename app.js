@@ -8,10 +8,23 @@
   window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
   window.INDICE_CAPITULOS_AUTO = window.INDICE_CAPITULOS_AUTO || [];
 
+  function leerStorage(clave, respaldo) {
+    try {
+      return localStorage.getItem(clave) ?? respaldo;
+    } catch {
+      return respaldo;
+    }
+  }
+
+  function guardarStorage(clave, valor) {
+    try {
+      localStorage.setItem(clave, String(valor));
+    } catch { }
+  }
+
   const personajes = DATOS_CAMPANA.personajes || [];
   const entradasCodice = Array.isArray(DATOS_CAMPANA.codice) ? DATOS_CAMPANA.codice : [];
 
-  // Fusiona los capítulos detectados por Python con las entradas especiales/perdidas de datos.js
   const mapaCapitulos = new Map();
   (DATOS_CAMPANA.capitulos || []).forEach(cap => mapaCapitulos.set(cap.numero, { ...cap }));
   window.INDICE_CAPITULOS_AUTO.forEach(capAuto => {
@@ -33,7 +46,7 @@
 
   let indiceActual = 0;
   let capitulosFiltrados = [...capitulos];
-  let tamanoFuente = parseFloat(localStorage.getItem("novela_font_size")) || 1.16;
+  let tamanoFuente = parseFloat(leerStorage("novela_font_size", "1.16")) || 1.16;
 
   let indicePersonaje = 0;
   const formaActivaPorPersonaje = personajes.map(() => 0);
@@ -53,6 +66,7 @@
   const elBtnAnt = document.getElementById("btn-anterior");
   const elBtnSig = document.getElementById("btn-siguiente");
   const elBtnCopiar = document.getElementById("btn-copiar-enlace");
+  const elBtnTema = document.getElementById("btn-tema");
   const elProgreso = document.getElementById("indicador-progreso");
   const elStats = document.getElementById("estadisticas-archivo");
 
@@ -68,11 +82,17 @@
   const elGrillaCodice = document.getElementById("grilla-codice");
   const elBuscarCodice = document.getElementById("buscar-codice");
 
+  function aplicarTema(tema) {
+    const normalizado = tema === "noche" || tema === "oscuro" ? "noche" : "papel";
+    document.documentElement.setAttribute("data-tema", normalizado);
+    if (elBtnTema) {
+      elBtnTema.textContent = normalizado === "papel" ? "Noche" : "Papel";
+    }
+  }
+
   function aplicarPreferenciasGuardadas() {
     document.documentElement.style.setProperty("--reading-size", `${tamanoFuente}rem`);
-    const temaGuardado = localStorage.getItem("novela_tema") || "papel";
-    document.documentElement.setAttribute("data-tema", temaGuardado);
-    document.getElementById("btn-tema").textContent = temaGuardado === "papel" ? "Noche" : "Papel";
+    aplicarTema(leerStorage("novela_tema", "papel"));
   }
 
   /* ==================== ENLACES DIRECTOS (HASH ROUTING) ==================== */
@@ -126,6 +146,10 @@
   }
 
   /* ==================== LECTOR Y PARSEO DE MARKDOWN ==================== */
+  function esLineaEncabezadoCapitulo(linea) {
+    return /^#\s+/.test(linea) || /^(\*{1,2})?Cap[ií]tulo\s+\d+\s*[:.\-—]/i.test(linea);
+  }
+
   function limpiarTituloMarkdown(linea) {
     return linea
       .replace(/^#+\s*/, "")
@@ -235,8 +259,7 @@
 
     let lista = [...parrafos];
 
-    // Si la primera línea es un encabezado Markdown (# Título), lo extrae para el título y lo quita del cuerpo
-    if (lista.length > 0 && /^#\s+/.test(lista[0].trim())) {
+    if (lista.length > 0 && esLineaEncabezadoCapitulo(lista[0].trim())) {
       const tituloExtraido = limpiarTituloMarkdown(lista[0]);
       if (tituloExtraido) {
         cap.titulo = tituloExtraido;
@@ -271,7 +294,7 @@
     const cap = capitulos[idx];
     const numPad = String(cap.numero).padStart(3, "0");
 
-    localStorage.setItem("novela_ultimo_cap", cap.numero);
+    guardarStorage("novela_ultimo_cap", cap.numero);
     if (actualizarHash) {
       actualizarHashSilencioso(`#cap-${numPad}`);
     }
@@ -279,7 +302,7 @@
     elCapArco.textContent = cap.arco;
     elCapNum.textContent = `Capítulo ${String(cap.numero).padStart(2, "0")}`;
     elCapTitulo.textContent = cap.titulo;
-    elCapSinopsis.textContent = cap.sinopsis;
+    elCapSinopsis.textContent = cap.sinopsis || "";
     elBtnAnt.disabled = idx === 0;
     elBtnSig.disabled = idx === capitulos.length - 1;
     elProgreso.textContent = `${idx + 1} de ${capitulos.length} entradas`;
@@ -697,23 +720,24 @@
 
   document.getElementById("btn-fuente-mas").addEventListener("click", () => {
     tamanoFuente = Math.min(1.5, +(tamanoFuente + 0.08).toFixed(2));
-    localStorage.setItem("novela_font_size", tamanoFuente);
+    guardarStorage("novela_font_size", tamanoFuente);
     document.documentElement.style.setProperty("--reading-size", `${tamanoFuente}rem`);
   });
 
   document.getElementById("btn-fuente-menos").addEventListener("click", () => {
     tamanoFuente = Math.max(0.96, +(tamanoFuente - 0.08).toFixed(2));
-    localStorage.setItem("novela_font_size", tamanoFuente);
+    guardarStorage("novela_font_size", tamanoFuente);
     document.documentElement.style.setProperty("--reading-size", `${tamanoFuente}rem`);
   });
 
-  document.getElementById("btn-tema").addEventListener("click", (e) => {
-    const actual = document.documentElement.getAttribute("data-tema");
-    const nuevo = actual === "papel" ? "noche" : "papel";
-    document.documentElement.setAttribute("data-tema", nuevo);
-    localStorage.setItem("novela_tema", nuevo);
-    e.target.textContent = nuevo === "papel" ? "Noche" : "Papel";
-  });
+  if (elBtnTema) {
+    elBtnTema.addEventListener("click", () => {
+      const actual = document.documentElement.getAttribute("data-tema");
+      const nuevo = actual === "papel" ? "noche" : "papel";
+      aplicarTema(nuevo);
+      guardarStorage("novela_tema", nuevo);
+    });
+  }
 
   elBtnAnt.addEventListener("click", () => {
     cargarCapitulo(indiceActual - 1, true);
@@ -738,7 +762,7 @@
   elStats.textContent = `${totalReales} capítulos — ${personajes.length} protagonistas — ${entradasCodice.length} entradas de códice`;
 
   if (!resolverRutaDesdeHash()) {
-    const ultimoNum = Number(localStorage.getItem("novela_ultimo_cap"));
+    const ultimoNum = Number(leerStorage("novela_ultimo_cap", "0"));
     const idxInicial = capitulos.findIndex(c => c.numero === ultimoNum);
     cargarCapitulo(idxInicial >= 0 ? idxInicial : 0, true);
   }

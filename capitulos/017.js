@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[17] = [
-  "Capítulo 17: Los de una Tierra Distante — Eliminar a tus compañeros",
   "Morgan había aprendido que las sombras no necesitaban que su dueña se moviera para perseguirlo.",
   "Eran varias. Cuatro, quizá cinco; suficientes para mantenerlo ocupado mientras la bruja permanecía a cierta distancia, observándolo. Hubo un intercambio de ataques, un breve enfrentamiento en el que ninguno consiguió imponerse del todo. Morgan retrocedió, pero las sombras no dejaron de seguirlo. Se alejó un poco más y comprobó que la mujer ni siquiera necesitaba acercarse: bastaba con que enviara aquellas extensiones oscuras tras él.",
   "Entonces decidió cambiar de estrategia.",

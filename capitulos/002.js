@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[2] = [
-  "Capítulo 2: Volviendo una persona sociable a Alexander / Gracias, papá",
   "El trayecto en auto transcurría con el sonido rítmico de la lluvia golpeando el parabrisas. Alexander conducía con la vista fija en la calle, intentando mantener la mente ocupada. A su lado, en el asiento del copiloto, iba Emily, su compañera de la universidad. Tras el tenso episodio en la enfermería con Wander y el resto del grupo, Alexander había decidido que lo mejor era seguir con sus propios planes y alejarse del caos por unas horas. Necesitaba enfocarse en el inminente concurso de bandas de la universidad.",
   "Guiado por su instinto callejero y su conocimiento de la ciudad, Alexander detuvo el vehículo frente a una tienda de música que, aunque no era la más lujosa, sabía que cumpliría su propósito. Principalmente porque el dueño no era un desconocido.",
   "Al entrar, la campana de la puerta anunció su llegada. Detrás del mostrador, organizando unos vinilos, se encontraba Felipe, un viejo conocido de Alexander que no ocultó su sorpresa al verlo entrar acompañado.",

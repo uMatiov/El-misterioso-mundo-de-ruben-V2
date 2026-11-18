@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[18] = [
-  "Capítulo 18: Los de una Tierra Distante — Esto nunca acaba",
   "El monstruo que había salido de la nevera no parecía tener intención de detenerse. Su cuerpo superaba ampliamente el tamaño de una persona, y las alas que se extendían desde su espalda hacían que la cocina pareciera todavía más pequeña. Sus ojos eran completamente rojos, rodeados por una coloración que no dejaba distinguir dónde terminaba el iris y dónde comenzaba el resto del ojo. La sangre cubría buena parte de su cuerpo.",
   "Morgan había recuperado su forma habitual. A su lado estaba Robin, mientras que frente a ellos se alzaba Mob, transformado en algo que ninguno había visto antes.",
   "La criatura los observó con un interés inquietante. No parecía pensar demasiado en las consecuencias de sus actos. Su atención estaba puesta en la sangre, en las personas que tenía delante y en la posibilidad de probarlas.",

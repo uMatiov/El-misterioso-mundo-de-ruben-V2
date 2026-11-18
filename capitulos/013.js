@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[13] = [
-  "Capítulo 13: Los de una Tierra Distante — Gatitos y terapia de amor",
   "El almuerzo había llegado sin Alexander.",
   "Morgan se encontraba en la sala, acompañado por aquella pequeña criatura que le había dejado un fragmento de espíritu antes de marcharse. El cachorro parecía particularmente contento con su presencia. Se acercaba, ladraba y movía la cola con una energía que contrastaba con la tranquilidad del lugar.",
   "Morgan lo observó durante un rato. Era pequeño, bonito y, por lo visto, bastante cariñoso. No había mucho más que hacer por el momento.",

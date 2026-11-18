@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[4] = [
-  "Capítulo 4: Los de una Tierra Distante — Declaración de Guerra",
   "El ambiente en el segundo piso del exclusivo club Blue Space de São Paulo era sofocante, cargado con el murmullo de la élite y el humo de cigarros caros. Tras el impacto inicial de descubrir a Wander tocando el piano en el escenario principal, el grupo se obligó a enfocar su atención en su verdadero objetivo. Guiados por las señas que les había hecho desde un reservado apartado, se acercaron a un elegante y solitario sofá resguardado por cortinas.",
   "Allí los esperaba el informante. Era un anciano de porte impecable, con una mirada astuta y una voz grave, pausada, que resonaba con el peso de alguien acostumbrado a mover los hilos desde las sombras.",
   "—Vengan, siéntense —los invitó el hombre, señalando los asientos de cuero—. Cuéntenme, ¿cuáles son sus nombres?",

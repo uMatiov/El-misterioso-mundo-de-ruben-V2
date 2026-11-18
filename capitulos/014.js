@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[14] = [
-  "Capítulo 14: Los de una Tierra Distante — Las aventuras del equipo amarillo, rosa y azul",
   "El tiempo que les quedaba antes de reunirse con el equipo local transcurrió entre preparativos y pequeños intentos de aprovechar la calma.",
   "Clavel decidió salir al patio para practicar. Quería repasar los movimientos que Raymundo le había enseñado, especialmente aquellos relacionados con el baile. No pretendía limitarse a repetirlos mecánicamente: también quería acostumbrarse a combinar el movimiento con sus otras capacidades, sin perder el ritmo cada vez que intentaba hacer algo distinto.",
   "Mientras practicaba, apareció Hootley.",

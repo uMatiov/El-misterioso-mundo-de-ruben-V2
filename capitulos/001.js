@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[1] = [
-  "Capítulo 1: La Escalipuff — Confesiones y Revelaciones",
   "El auricular del teléfono devolvía la voz de Wander cargada de una pesadez inusual, marcada por el agotamiento y una sinceridad frágil. Al otro lado de la línea, Clavel escuchaba en silencio, procesando la disculpa que él intentaba formular.",
   "—Los sentimientos que yo llegue a tener van a tener repercusiones en él —explicó Wander, arrastrando las palabras—. Esos días tuve muchas emociones distintas. Tenía miedo de que eso le afectara. Por eso, el día que me diste la carta, no la leí. Temía afectar al pequeño. Sé que suena a excusa, pero quiero que sepas que estoy siendo sincero.",
   "Clavel suspiró. La tensión de las últimas jornadas todavía le pesaba en los hombros.",

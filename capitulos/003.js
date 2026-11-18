@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[3] = [
-  "Capítulo 3: El 40% de Morgan y la Peculiar Discoteca",
   "El olor a antiséptico y el zumbido de las luces fluorescentes del hospital general de São Paulo enmarcaban una escena dantesca. En el interior de la habitación, sobre una camilla inmaculada, no descansaba un paciente humano. En su lugar, esparcido sobre las sábanas blancas, se retorcía un grotesco y debilitado enjambre de arañas peludas.",
   "Clavel, Robin y Kris se quedaron mudos frente a la cama, procesando la imagen mientras Mob, el vampiro, se mantenía un paso atrás, observando con su habitual estoicismo.",
   "Robin, aferrándose a su instinto médico, se acercó a revisar la tablilla de diagnóstico colgada a los pies de la otra camilla, donde descansaba Asher, aún anestesiado.",

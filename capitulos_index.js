@@ -3,7 +3,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 1,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 01",
+    "titulo": "La Escalipuff — Confesiones y Revelaciones",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/001.js"
@@ -11,7 +11,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 2,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 02",
+    "titulo": "Volviendo una persona sociable a Alexander / Gracias, papá",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/002.js"
@@ -19,7 +19,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 3,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 03",
+    "titulo": "El 40% de Morgan y la Peculiar Discoteca",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/003.js"
@@ -27,7 +27,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 4,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 04",
+    "titulo": "Los de una Tierra Distante — Declaración de Guerra",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/004.js"
@@ -43,7 +43,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 6,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 06",
+    "titulo": "El bajo mundo, papá, se me metió un búho a la casa y un enemigo cerca",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/006.js"
@@ -59,7 +59,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 9,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 09",
+    "titulo": "Los de una Tierra Distante — Desafía al equipo de la tríada / Autopsia",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/009.js"
@@ -67,7 +67,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 10,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 10",
+    "titulo": "Los de una Tierra Distante — Visita del duque Adolf",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/010.js"
@@ -83,7 +83,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 12,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 12",
+    "titulo": "Los de una Tierra Distante — Llegada a Porto Alegre",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/012.js"
@@ -91,7 +91,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 13,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 13",
+    "titulo": "Los de una Tierra Distante — Gatitos y terapia de amor",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/013.js"
@@ -99,7 +99,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 14,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 14",
+    "titulo": "Los de una Tierra Distante — Las aventuras del equipo amarillo, rosa y azul",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/014.js"
@@ -107,7 +107,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 17,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 17",
+    "titulo": "Los de una Tierra Distante — Eliminar a tus compañeros",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/017.js"
@@ -115,7 +115,7 @@ window.INDICE_CAPITULOS_AUTO = [
   {
     "numero": 18,
     "arco": "Crónica principal",
-    "titulo": "Capítulo 18",
+    "titulo": "Los de una Tierra Distante — Esto nunca acaba",
     "perdido": false,
     "sinopsis": "",
     "archivo": "capitulos/018.js"

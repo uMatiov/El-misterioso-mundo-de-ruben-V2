@@ -14,7 +14,8 @@
   --ease-card: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-html[data-tema="noche"] {
+html[data-tema="noche"],
+html[data-tema="oscuro"] {
   --bg-folio: #141619;
   --bg-margin: #1b1e23;
   --bg-hover: #242830;
@@ -338,6 +339,10 @@ select {
   line-height: 1.6;
 }
 
+.sinopsis-capitulo:empty {
+  display: none;
+}
+
 .prosa-capitulo {
   font-family: var(--font-book);
   font-size: var(--reading-size);
@@ -355,6 +360,14 @@ select {
   line-height: 0.82;
   padding-right: 0.14em;
   padding-top: 0.06em;
+  font-weight: 700;
+  color: var(--accent-seal);
+}
+
+.subtitulo-escena {
+  margin: 2.2rem 0 1rem;
+  font-family: var(--font-book);
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--accent-seal);
 }

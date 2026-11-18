@@ -104,15 +104,8 @@ const DATOS_CAMPANA = {
     }
   ],
 
+  // Aquí puedes dejar capítulos especiales/perdidos o sobreescribir el arco/sinopsis de cualquier capítulo
   capitulos: [
-    {
-      numero: 1,
-      arco: "Arco I — Los primeros pasos",
-      titulo: "El punto de partida",
-      perdido: false,
-      sinopsis: "Primer encuentro del grupo y el encargo que los reúne en El misterioso mundo de Rubén.",
-      archivo: "capitulos/001.js"
-    },
     {
       numero: 21,
       arco: "Arco II — Rumores y preparativos",
@@ -122,14 +115,6 @@ const DATOS_CAMPANA = {
       parrafos: [
         "No se conserva grabación de esta sesión. Según lo relatado al inicio del capítulo siguiente, el grupo completó su traslado y dejó preparados los asuntos pendientes antes del festival."
       ]
-    },
-    {
-      numero: 22,
-      arco: "Arco II — Rumores y preparativos",
-      titulo: "Una bofetada de bienvenida",
-      perdido: false,
-      sinopsis: "Reencuentros tensos, viejos conocidos y las primeras pistas sobre lo que se trama antes del festival.",
-      archivo: "capitulos/022.js"
     }
   ]
 };

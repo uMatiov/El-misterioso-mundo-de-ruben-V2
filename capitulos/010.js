@@ -1,6 +1,5 @@
 window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
 window.CAPITULOS_CACHE[10] = [
-  "Capítulo 10: Los de una Tierra Distante — Visita del duque Adolf",
   "La lluvia seguía cayendo sobre la ciudad cuando un automóvil negro se detuvo frente a la casa.",
   "Morgan fue quien abrió la puerta. A su lado estaba Kris, todavía adaptándose a su nueva situación. Al otro lado esperaba un hombre alto, impecablemente arreglado, vestido con un traje que parecía costar más de lo que cualquiera de ellos ganaría en mucho tiempo. Morgan lo reconoció de inmediato.",
   "Era el duque Adolf.",

@@ -6,6 +6,8 @@ ORIGEN = Path("borradores")
 DESTINO = Path("capitulos")
 ARCHIVO_INDICE = Path("capitulos_index.js")
 
+PATRON_ENCABEZADO = re.compile(r"^(#\s+|(\*{1,2})?Cap[ií]tulo\s+\d+\s*[:.\-—])", re.IGNORECASE)
+
 
 def limpiar_titulo(linea: str, num_cap: int) -> str:
     sin_marca = re.sub(r"^#+\s*", "", linea).strip()
@@ -34,7 +36,6 @@ def main() -> None:
         num_cap = int(digitos)
         num_pad = f"{num_cap:03d}"
 
-        # utf-8-sig limpia automáticamente el BOM si el archivo viene del Bloc de notas de Windows
         texto = ruta.read_text(encoding="utf-8-sig").strip()
         parrafos = [linea.strip() for linea in texto.splitlines() if linea.strip()]
 
@@ -43,7 +44,7 @@ def main() -> None:
             continue
 
         titulo = f"Capítulo {num_cap:02d}"
-        if re.match(r"^#\s+", parrafos[0]):
+        if PATRON_ENCABEZADO.match(parrafos[0]):
             titulo = limpiar_titulo(parrafos.pop(0), num_cap)
 
         destino_archivo = DESTINO / f"{num_pad}.js"
