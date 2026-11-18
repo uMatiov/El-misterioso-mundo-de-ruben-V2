@@ -1,0 +1,745 @@
+(() => {
+  if (typeof DATOS_CAMPANA === "undefined") {
+    document.getElementById("cap-titulo").textContent = "Falta cargar datos.js";
+    document.getElementById("cap-sinopsis").textContent = "Asegúrate de que datos.js esté en la misma carpeta que index.html.";
+    return;
+  }
+
+  window.CAPITULOS_CACHE = window.CAPITULOS_CACHE || {};
+  window.INDICE_CAPITULOS_AUTO = window.INDICE_CAPITULOS_AUTO || [];
+
+  const personajes = DATOS_CAMPANA.personajes || [];
+  const entradasCodice = Array.isArray(DATOS_CAMPANA.codice) ? DATOS_CAMPANA.codice : [];
+
+  // Fusiona los capítulos detectados por Python con las entradas especiales/perdidas de datos.js
+  const mapaCapitulos = new Map();
+  (DATOS_CAMPANA.capitulos || []).forEach(cap => mapaCapitulos.set(cap.numero, { ...cap }));
+  window.INDICE_CAPITULOS_AUTO.forEach(capAuto => {
+    const previo = mapaCapitulos.get(capAuto.numero);
+    if (previo) {
+      const esPlaceholder = previo.titulo === "El punto de partida" || !previo.titulo;
+      mapaCapitulos.set(capAuto.numero, {
+        ...capAuto,
+        ...previo,
+        titulo: esPlaceholder ? capAuto.titulo : previo.titulo,
+        archivo: capAuto.archivo
+      });
+    } else {
+      mapaCapitulos.set(capAuto.numero, capAuto);
+    }
+  });
+
+  const capitulos = [...mapaCapitulos.values()].sort((a, b) => a.numero - b.numero);
+
+  let indiceActual = 0;
+  let capitulosFiltrados = [...capitulos];
+  let tamanoFuente = parseFloat(localStorage.getItem("novela_font_size")) || 1.16;
+
+  let indicePersonaje = 0;
+  const formaActivaPorPersonaje = personajes.map(() => 0);
+  const tarjetasDOM = [];
+  const lineasDOM = [];
+
+  let categoriaCodiceActiva = "todos";
+
+  const elListaCap = document.getElementById("lista-capitulos");
+  const elFiltroArco = document.getElementById("filtro-arco");
+  const elBuscarCap = document.getElementById("buscar-capitulo");
+  const elCapArco = document.getElementById("cap-arco");
+  const elCapNum = document.getElementById("cap-numero");
+  const elCapTitulo = document.getElementById("cap-titulo");
+  const elCapSinopsis = document.getElementById("cap-sinopsis");
+  const elCapCuerpo = document.getElementById("cap-cuerpo");
+  const elBtnAnt = document.getElementById("btn-anterior");
+  const elBtnSig = document.getElementById("btn-siguiente");
+  const elBtnCopiar = document.getElementById("btn-copiar-enlace");
+  const elProgreso = document.getElementById("indicador-progreso");
+  const elStats = document.getElementById("estadisticas-archivo");
+
+  const elPilaCartas = document.getElementById("pila-cartas");
+  const elPersNombre = document.getElementById("pers-nombre");
+  const elPersRol = document.getElementById("pers-rol");
+  const elSelectorFormas = document.getElementById("selector-formas");
+  const elPersResumen = document.getElementById("pers-resumen");
+  const elPersRasgo = document.getElementById("pers-rasgo");
+  const elPersEstado = document.getElementById("pers-estado");
+  const elIndicadoresPers = document.getElementById("indicadores-personajes");
+
+  const elGrillaCodice = document.getElementById("grilla-codice");
+  const elBuscarCodice = document.getElementById("buscar-codice");
+
+  function aplicarPreferenciasGuardadas() {
+    document.documentElement.style.setProperty("--reading-size", `${tamanoFuente}rem`);
+    const temaGuardado = localStorage.getItem("novela_tema") || "papel";
+    document.documentElement.setAttribute("data-tema", temaGuardado);
+    document.getElementById("btn-tema").textContent = temaGuardado === "papel" ? "Noche" : "Papel";
+  }
+
+  /* ==================== ENLACES DIRECTOS (HASH ROUTING) ==================== */
+  function actualizarHashSilencioso(nuevoHash) {
+    if (window.location.hash !== nuevoHash) {
+      history.replaceState(null, "", nuevoHash);
+    }
+  }
+
+  function activarVista(nombreVista, actualizarHash = true) {
+    document.querySelectorAll(".nav-btn").forEach(b => {
+      b.classList.toggle("activo", b.dataset.vista === nombreVista);
+    });
+
+    document.querySelectorAll(".vista").forEach(sec => {
+      sec.hidden = sec.id !== `vista-${nombreVista}`;
+    });
+
+    if (nombreVista === "personajes") {
+      actualizarDisposicionPila();
+      if (actualizarHash) actualizarHashSilencioso("#personajes");
+    } else if (nombreVista === "codice") {
+      if (actualizarHash) actualizarHashSilencioso("#codice");
+    } else if (nombreVista === "lector" && capitulos[indiceActual]) {
+      const numPad = String(capitulos[indiceActual].numero).padStart(3, "0");
+      if (actualizarHash) actualizarHashSilencioso(`#cap-${numPad}`);
+    }
+  }
+
+  function resolverRutaDesdeHash() {
+    const hash = window.location.hash.trim().toLowerCase();
+    if (hash === "#personajes") {
+      activarVista("personajes", false);
+      return true;
+    }
+    if (hash === "#codice") {
+      activarVista("codice", false);
+      return true;
+    }
+    const matchCap = hash.match(/^#cap-(\d+)$/);
+    if (matchCap) {
+      const numBuscado = Number(matchCap[1]);
+      const idx = capitulos.findIndex(c => c.numero === numBuscado);
+      if (idx >= 0) {
+        activarVista("lector", false);
+        cargarCapitulo(idx, false);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /* ==================== LECTOR Y PARSEO DE MARKDOWN ==================== */
+  function limpiarTituloMarkdown(linea) {
+    return linea
+      .replace(/^#+\s*/, "")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/\*(.+?)\*/g, "$1")
+      .replace(/^Cap[ií]tulo\s+\d+\s*[:.\-—]\s*/i, "")
+      .trim();
+  }
+
+  function formatearInlineSeguro(texto) {
+    const escapado = texto
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    return escapado
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>");
+  }
+
+  function poblarSelectorArcos() {
+    const arcosUnicos = [...new Set(capitulos.map(c => c.arco))];
+    arcosUnicos.forEach(arco => {
+      const opt = document.createElement("option");
+      opt.value = arco;
+      opt.textContent = arco;
+      elFiltroArco.appendChild(opt);
+    });
+  }
+
+  function renderizarIndice() {
+    elListaCap.innerHTML = "";
+    if (capitulosFiltrados.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "Sin resultados para esa búsqueda.";
+      li.style.padding = "0.75rem 0.5rem";
+      li.style.color = "var(--ink-muted)";
+      elListaCap.appendChild(li);
+      return;
+    }
+
+    const capActivo = capitulos[indiceActual];
+    capitulosFiltrados.forEach(cap => {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "item-cap-btn";
+      if (capActivo && cap.numero === capActivo.numero) btn.classList.add("activo");
+      if (cap.perdido) btn.classList.add("item-cap-perdido");
+
+      const numSpan = document.createElement("span");
+      numSpan.className = "item-cap-num";
+      numSpan.textContent = String(cap.numero).padStart(3, "0");
+
+      const titSpan = document.createElement("span");
+      titSpan.className = "item-cap-titulo";
+      titSpan.textContent = cap.perdido ? `${cap.titulo} (Sin grabación)` : cap.titulo;
+
+      btn.append(numSpan, titSpan);
+      btn.addEventListener("click", () => {
+        const idxReal = capitulos.findIndex(c => c.numero === cap.numero);
+        cargarCapitulo(idxReal, true);
+      });
+
+      li.appendChild(btn);
+      elListaCap.appendChild(li);
+    });
+  }
+
+  function obtenerParrafosCapitulo(cap) {
+    if (Array.isArray(cap.parrafos) && cap.parrafos.length > 0) {
+      return Promise.resolve(cap.parrafos);
+    }
+    if (Array.isArray(window.CAPITULOS_CACHE[cap.numero])) {
+      return Promise.resolve(window.CAPITULOS_CACHE[cap.numero]);
+    }
+
+    const rutaScript = cap.archivo || `capitulos/${String(cap.numero).padStart(3, "0")}.js`;
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = rutaScript;
+      script.onload = () => {
+        script.remove();
+        if (Array.isArray(window.CAPITULOS_CACHE[cap.numero])) {
+          resolve(window.CAPITULOS_CACHE[cap.numero]);
+        } else {
+          reject(new Error(`El archivo ${rutaScript} no registró el capítulo ${cap.numero}.`));
+        }
+      };
+      script.onerror = () => {
+        script.remove();
+        reject(new Error(`Aún no existe el archivo ${rutaScript}.`));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  function pintarParrafosEnVisor(cap, parrafos) {
+    elCapCuerpo.innerHTML = "";
+    if (cap.perdido) {
+      const aviso = document.createElement("div");
+      aviso.className = "aviso-perdido";
+      aviso.textContent = parrafos.join(" ");
+      elCapCuerpo.appendChild(aviso);
+      return;
+    }
+
+    let lista = [...parrafos];
+
+    // Si la primera línea es un encabezado Markdown (# Título), lo extrae para el título y lo quita del cuerpo
+    if (lista.length > 0 && /^#\s+/.test(lista[0].trim())) {
+      const tituloExtraido = limpiarTituloMarkdown(lista[0]);
+      if (tituloExtraido) {
+        cap.titulo = tituloExtraido;
+        elCapTitulo.textContent = tituloExtraido;
+        renderizarIndice();
+      }
+      lista.shift();
+    }
+
+    lista.forEach(texto => {
+      const linea = texto.trim();
+      if (!linea) return;
+
+      if (linea === "***" || linea === "---") {
+        elCapCuerpo.appendChild(document.createElement("hr"));
+      } else if (/^#{2,3}\s+/.test(linea)) {
+        const h3 = document.createElement("h3");
+        h3.className = "subtitulo-escena";
+        h3.innerHTML = formatearInlineSeguro(linea.replace(/^#{2,3}\s+/, ""));
+        elCapCuerpo.appendChild(h3);
+      } else {
+        const p = document.createElement("p");
+        p.innerHTML = formatearInlineSeguro(linea);
+        elCapCuerpo.appendChild(p);
+      }
+    });
+  }
+
+  async function cargarCapitulo(idx, actualizarHash = true) {
+    if (idx < 0 || idx >= capitulos.length) return;
+    indiceActual = idx;
+    const cap = capitulos[idx];
+    const numPad = String(cap.numero).padStart(3, "0");
+
+    localStorage.setItem("novela_ultimo_cap", cap.numero);
+    if (actualizarHash) {
+      actualizarHashSilencioso(`#cap-${numPad}`);
+    }
+
+    elCapArco.textContent = cap.arco;
+    elCapNum.textContent = `Capítulo ${String(cap.numero).padStart(2, "0")}`;
+    elCapTitulo.textContent = cap.titulo;
+    elCapSinopsis.textContent = cap.sinopsis;
+    elBtnAnt.disabled = idx === 0;
+    elBtnSig.disabled = idx === capitulos.length - 1;
+    elProgreso.textContent = `${idx + 1} de ${capitulos.length} entradas`;
+    renderizarIndice();
+
+    elCapCuerpo.innerHTML = `<div class="estado-carga-cap">Cargando texto del capítulo...</div>`;
+
+    try {
+      const parrafos = await obtenerParrafosCapitulo(cap);
+      if (indiceActual !== idx) return;
+      pintarParrafosEnVisor(cap, parrafos);
+    } catch (err) {
+      if (indiceActual !== idx) return;
+      elCapCuerpo.innerHTML = `<div class="aviso-perdido">${err.message}</div>`;
+    }
+  }
+
+  function filtrarCapitulos() {
+    const query = elBuscarCap.value.trim().toLowerCase();
+    const arco = elFiltroArco.value;
+
+    capitulosFiltrados = capitulos.filter(cap => {
+      const coincideArco = arco === "todos" || cap.arco === arco;
+      const coincideTexto =
+        !query ||
+        cap.titulo.toLowerCase().includes(query) ||
+        String(cap.numero).includes(query);
+      return coincideArco && coincideTexto;
+    });
+
+    renderizarIndice();
+  }
+
+  elBtnCopiar.addEventListener("click", async () => {
+    const cap = capitulos[indiceActual];
+    if (!cap) return;
+    const numPad = String(cap.numero).padStart(3, "0");
+    actualizarHashSilencioso(`#cap-${numPad}`);
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      elBtnCopiar.textContent = "Enlace copiado";
+      setTimeout(() => { elBtnCopiar.textContent = "Copiar enlace"; }, 1800);
+    } catch {
+      elBtnCopiar.textContent = `#cap-${numPad}`;
+      setTimeout(() => { elBtnCopiar.textContent = "Copiar enlace"; }, 1800);
+    }
+  });
+
+  /* ==================== LÓGICA DE PILA DE PERSONAJES Y FORMAS ==================== */
+  function obtenerDatosForma(personaje, idxPersonaje) {
+    if (Array.isArray(personaje.formas) && personaje.formas.length > 0) {
+      const idxForma = formaActivaPorPersonaje[idxPersonaje] || 0;
+      const forma = personaje.formas[idxForma] || personaje.formas[0];
+      return {
+        etiquetaForma: forma.etiqueta,
+        imagen: forma.imagen || personaje.imagen,
+        encuadre: forma.encuadre || personaje.encuadre || "center 15%",
+        resumen: forma.resumen || personaje.resumen,
+        rasgoClave: forma.rasgoClave || personaje.rasgoClave,
+        estadoActual: forma.estadoActual || personaje.estadoActual
+      };
+    }
+    return {
+      etiquetaForma: null,
+      imagen: personaje.imagen,
+      encuadre: personaje.encuadre || "center 15%",
+      resumen: personaje.resumen,
+      rasgoClave: personaje.rasgoClave,
+      estadoActual: personaje.estadoActual
+    };
+  }
+
+  function crearRespaldoRetrato(nombre, rutaBase, etiquetaForma) {
+    const div = document.createElement("div");
+    div.className = "retrato-fallback";
+    const titulo = etiquetaForma ? `${nombre} (${etiquetaForma})` : nombre;
+    div.innerHTML = `
+      <span class="retrato-inicial">${nombre.charAt(0)}</span>
+      <strong>${titulo}</strong>
+      <span class="retrato-hint">Agrega ${rutaBase} (.png, .jpg o .webp)</span>
+    `;
+    return div;
+  }
+
+  function obtenerCandidatosImagen(rutaImagen, nombreFallback) {
+    const rutaLimpia = (rutaImagen || `img/${nombreFallback.toLowerCase()}`).trim();
+    const sinExtension = rutaLimpia.replace(/\.[a-z0-9]{2,5}$/i, "");
+    const extensiones = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif"];
+
+    const candidatos = [];
+    if (sinExtension !== rutaLimpia) {
+      candidatos.push(rutaLimpia);
+    }
+    extensiones.forEach(ext => {
+      const candidata = `${sinExtension}${ext}`;
+      if (!candidatos.includes(candidata)) {
+        candidatos.push(candidata);
+      }
+    });
+    return { candidatos, sinExtension };
+  }
+
+  function pintarContenidoTarjeta(card, personaje, idxPersonaje) {
+    const datos = obtenerDatosForma(personaje, idxPersonaje);
+    card.innerHTML = "";
+
+    const { candidatos, sinExtension } = obtenerCandidatosImagen(datos.imagen, personaje.nombre);
+    let intento = 0;
+
+    const img = document.createElement("img");
+    img.alt = datos.etiquetaForma
+      ? `Retrato de ${personaje.nombre} — Forma ${datos.etiquetaForma}`
+      : `Retrato de ${personaje.nombre}`;
+    img.style.objectPosition = datos.encuadre;
+
+    img.onload = () => {
+      if (idxPersonaje === indicePersonaje) {
+        actualizarDisposicionPila();
+      }
+    };
+
+    img.onerror = () => {
+      intento++;
+      if (intento < candidatos.length) {
+        img.src = candidatos[intento];
+      } else {
+        card.innerHTML = "";
+        card.appendChild(crearRespaldoRetrato(personaje.nombre, sinExtension, datos.etiquetaForma));
+        if (idxPersonaje === indicePersonaje) {
+          actualizarDisposicionPila();
+        }
+      }
+    };
+
+    img.src = candidatos[0];
+    card.appendChild(img);
+  }
+
+  function inicializarPilaPersonajes() {
+    elPilaCartas.innerHTML = "";
+    elIndicadoresPers.innerHTML = "";
+
+    personajes.forEach((p, idx) => {
+      const card = document.createElement("div");
+      card.className = "card-personaje";
+      pintarContenidoTarjeta(card, p, idx);
+
+      card.addEventListener("click", () => {
+        if (idx !== indicePersonaje) {
+          seleccionarPersonaje(idx);
+        }
+      });
+
+      elPilaCartas.appendChild(card);
+      tarjetasDOM.push(card);
+
+      const linea = document.createElement("button");
+      linea.type = "button";
+      linea.className = "linea-indicador";
+      linea.setAttribute("aria-label", `Ver a ${p.nombre}`);
+      linea.addEventListener("click", () => seleccionarPersonaje(idx));
+      elIndicadoresPers.appendChild(linea);
+      lineasDOM.push(linea);
+    });
+
+    seleccionarPersonaje(0);
+  }
+
+  function actualizarDetallePersonaje() {
+    const activo = personajes[indicePersonaje];
+    const datos = obtenerDatosForma(activo, indicePersonaje);
+
+    elPersNombre.textContent = activo.nombre;
+    elPersRol.textContent = activo.rol;
+    elPersResumen.textContent = datos.resumen;
+    elPersRasgo.textContent = datos.rasgoClave;
+    elPersEstado.textContent = datos.estadoActual;
+
+    elSelectorFormas.innerHTML = "";
+    if (Array.isArray(activo.formas) && activo.formas.length > 1) {
+      elSelectorFormas.hidden = false;
+      const idxFormaActual = formaActivaPorPersonaje[indicePersonaje] || 0;
+
+      activo.formas.forEach((forma, fIdx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn-forma";
+        if (fIdx === idxFormaActual) btn.classList.add("activa");
+        btn.textContent = forma.etiqueta;
+        btn.setAttribute("aria-pressed", String(fIdx === idxFormaActual));
+
+        btn.addEventListener("click", () => {
+          formaActivaPorPersonaje[indicePersonaje] = fIdx;
+          pintarContenidoTarjeta(tarjetasDOM[indicePersonaje], activo, indicePersonaje);
+          actualizarDetallePersonaje();
+          actualizarDisposicionPila();
+        });
+
+        elSelectorFormas.appendChild(btn);
+      });
+    } else {
+      elSelectorFormas.hidden = true;
+    }
+  }
+
+  function calcularMedidasImagenActiva(cardActiva) {
+    const anchoContenedor = elPilaCartas.clientWidth || 480;
+    const anchoMaximo = Math.min(anchoContenedor, 500);
+    const altoMaximo = Math.min(window.innerHeight * 0.64, 540);
+    const img = cardActiva.querySelector("img");
+
+    if (img && img.naturalWidth > 0 && img.naturalHeight > 0) {
+      const proporcion = img.naturalWidth / img.naturalHeight;
+      let anchoFinal = anchoMaximo;
+      let altoFinal = anchoFinal / proporcion;
+
+      if (altoFinal > altoMaximo) {
+        altoFinal = altoMaximo;
+        anchoFinal = altoFinal * proporcion;
+      }
+
+      return {
+        ancho: Math.round(anchoFinal),
+        alto: Math.round(altoFinal)
+      };
+    }
+
+    return {
+      ancho: Math.min(anchoContenedor, 400),
+      alto: 320
+    };
+  }
+
+  function actualizarDisposicionPila() {
+    const total = personajes.length;
+    if (total === 0) return;
+
+    const cardActiva = tarjetasDOM[indicePersonaje];
+    const { ancho, alto } = calcularMedidasImagenActiva(cardActiva);
+
+    const altoBaseFondo = 320;
+    const desplazamientoNivel1 = Math.max(75, Math.round((alto / 2) - (altoBaseFondo * 0.84 / 2) + 46));
+    const desplazamientoNivel2 = desplazamientoNivel1 + 38;
+
+    elPilaCartas.style.height = `${alto + 170}px`;
+
+    tarjetasDOM.forEach((card, i) => {
+      let diff = i - indicePersonaje;
+      if (diff > total / 2) diff -= total;
+      if (diff < -total / 2) diff += total;
+
+      const esActiva = diff === 0;
+      card.classList.toggle("es-activa", esActiva);
+
+      if (esActiva) {
+        card.style.width = `${ancho}px`;
+        card.style.height = `${alto}px`;
+        card.style.transform = "translateY(0px) scale(1)";
+        card.style.zIndex = "10";
+        card.style.filter = "grayscale(0%) brightness(1)";
+        card.style.opacity = "1";
+        card.style.pointerEvents = "auto";
+      } else if (Math.abs(diff) === 1) {
+        const y = diff * desplazamientoNivel1;
+        card.style.width = "";
+        card.style.height = "";
+        card.style.transform = `translateY(${y}px) scale(0.84)`;
+        card.style.zIndex = "6";
+        card.style.filter = "grayscale(100%) brightness(0.82)";
+        card.style.opacity = "0.95";
+        card.style.pointerEvents = "auto";
+      } else if (Math.abs(diff) === 2) {
+        const y = diff * desplazamientoNivel2;
+        card.style.width = "";
+        card.style.height = "";
+        card.style.transform = `translateY(${y}px) scale(0.68)`;
+        card.style.zIndex = "3";
+        card.style.filter = "grayscale(100%) brightness(0.65)";
+        card.style.opacity = "0.75";
+        card.style.pointerEvents = "auto";
+      } else {
+        const y = diff > 0 ? desplazamientoNivel2 + 40 : -(desplazamientoNivel2 + 40);
+        card.style.width = "";
+        card.style.height = "";
+        card.style.transform = `translateY(${y}px) scale(0.52)`;
+        card.style.zIndex = "1";
+        card.style.filter = "grayscale(100%) brightness(0.5)";
+        card.style.opacity = "0";
+        card.style.pointerEvents = "none";
+      }
+    });
+  }
+
+  function seleccionarPersonaje(nuevoIdx) {
+    const total = personajes.length;
+    if (total === 0) return;
+    indicePersonaje = ((nuevoIdx % total) + total) % total;
+
+    lineasDOM.forEach((linea, i) => {
+      linea.classList.toggle("activa", i === indicePersonaje);
+    });
+
+    actualizarDisposicionPila();
+    actualizarDetallePersonaje();
+  }
+
+  /* ==================== VISTA CÓDICE ==================== */
+  function renderizarCodice() {
+    elGrillaCodice.innerHTML = "";
+    const query = elBuscarCodice.value.trim().toLowerCase();
+
+    const filtradas = entradasCodice.filter(item => {
+      const coincideCat = categoriaCodiceActiva === "todos" || item.categoria === categoriaCodiceActiva;
+      const coincideTexto =
+        !query ||
+        item.nombre.toLowerCase().includes(query) ||
+        item.descripcion.toLowerCase().includes(query);
+      return coincideCat && coincideTexto;
+    });
+
+    if (filtradas.length === 0) {
+      elGrillaCodice.innerHTML = `<p class="estado-vacio-codice">No hay entradas en el códice que coincidan con ese filtro.</p>`;
+      return;
+    }
+
+    filtradas.forEach(item => {
+      const art = document.createElement("article");
+      art.className = "entrada-codice";
+
+      const tieneCap = typeof item.aparicionCap === "number" && capitulos.some(c => c.numero === item.aparicionCap);
+
+      art.innerHTML = `
+        <div class="codice-top">
+          <h3 class="codice-titulo">${item.nombre}</h3>
+          <span class="codice-categoria">${item.categoria}</span>
+        </div>
+        <p class="codice-descripcion">${item.descripcion}</p>
+        <div class="codice-meta">
+          <span>${item.aparicionCap ? `Mencionado en Cap. ${String(item.aparicionCap).padStart(2, "0")}` : "Archivo general"}</span>
+          ${tieneCap ? `<button type="button" class="btn-ir-cap" data-cap="${item.aparicionCap}">Ir al capítulo</button>` : ""}
+        </div>
+      `;
+
+      const btnIr = art.querySelector(".btn-ir-cap");
+      if (btnIr) {
+        btnIr.addEventListener("click", () => {
+          const idxCap = capitulos.findIndex(c => c.numero === Number(btnIr.dataset.cap));
+          if (idxCap >= 0) {
+            activarVista("lector", false);
+            cargarCapitulo(idxCap, true);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        });
+      }
+
+      elGrillaCodice.appendChild(art);
+    });
+  }
+
+  document.querySelectorAll(".cat-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("activa"));
+      btn.classList.add("activa");
+      categoriaCodiceActiva = btn.dataset.cat;
+      renderizarCodice();
+    });
+  });
+
+  elBuscarCodice.addEventListener("input", renderizarCodice);
+
+  /* ==================== EVENTOS GENERALES ==================== */
+  document.getElementById("btn-pers-arriba").addEventListener("click", () => {
+    seleccionarPersonaje(indicePersonaje - 1);
+  });
+
+  document.getElementById("btn-pers-abajo").addEventListener("click", () => {
+    seleccionarPersonaje(indicePersonaje + 1);
+  });
+
+  let bloqueoScrollPila = false;
+  elPilaCartas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    if (bloqueoScrollPila) return;
+    bloqueoScrollPila = true;
+    seleccionarPersonaje(e.deltaY > 0 ? indicePersonaje + 1 : indicePersonaje - 1);
+    setTimeout(() => { bloqueoScrollPila = false; }, 320);
+  }, { passive: false });
+
+  window.addEventListener("resize", () => {
+    const vistaPers = document.getElementById("vista-personajes");
+    if (!vistaPers.hidden) {
+      actualizarDisposicionPila();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const vistaPers = document.getElementById("vista-personajes");
+    if (vistaPers.hidden) return;
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      seleccionarPersonaje(indicePersonaje - 1);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      seleccionarPersonaje(indicePersonaje + 1);
+    }
+  });
+
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activarVista(btn.dataset.vista, true);
+    });
+  });
+
+  document.getElementById("btn-fuente-mas").addEventListener("click", () => {
+    tamanoFuente = Math.min(1.5, +(tamanoFuente + 0.08).toFixed(2));
+    localStorage.setItem("novela_font_size", tamanoFuente);
+    document.documentElement.style.setProperty("--reading-size", `${tamanoFuente}rem`);
+  });
+
+  document.getElementById("btn-fuente-menos").addEventListener("click", () => {
+    tamanoFuente = Math.max(0.96, +(tamanoFuente - 0.08).toFixed(2));
+    localStorage.setItem("novela_font_size", tamanoFuente);
+    document.documentElement.style.setProperty("--reading-size", `${tamanoFuente}rem`);
+  });
+
+  document.getElementById("btn-tema").addEventListener("click", (e) => {
+    const actual = document.documentElement.getAttribute("data-tema");
+    const nuevo = actual === "papel" ? "noche" : "papel";
+    document.documentElement.setAttribute("data-tema", nuevo);
+    localStorage.setItem("novela_tema", nuevo);
+    e.target.textContent = nuevo === "papel" ? "Noche" : "Papel";
+  });
+
+  elBtnAnt.addEventListener("click", () => {
+    cargarCapitulo(indiceActual - 1, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  elBtnSig.addEventListener("click", () => {
+    cargarCapitulo(indiceActual + 1, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  elBuscarCap.addEventListener("input", filtrarCapitulos);
+  elFiltroArco.addEventListener("change", filtrarCapitulos);
+  window.addEventListener("hashchange", resolverRutaDesdeHash);
+
+  aplicarPreferenciasGuardadas();
+  poblarSelectorArcos();
+  inicializarPilaPersonajes();
+  renderizarCodice();
+
+  const totalReales = capitulos.filter(c => !c.perdido).length;
+  elStats.textContent = `${totalReales} capítulos — ${personajes.length} protagonistas — ${entradasCodice.length} entradas de códice`;
+
+  if (!resolverRutaDesdeHash()) {
+    const ultimoNum = Number(localStorage.getItem("novela_ultimo_cap"));
+    const idxInicial = capitulos.findIndex(c => c.numero === ultimoNum);
+    cargarCapitulo(idxInicial >= 0 ? idxInicial : 0, true);
+  }
+})();
